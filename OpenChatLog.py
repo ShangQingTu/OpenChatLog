@@ -12,12 +12,18 @@ from streamlit_authenticator.authenticate import Authenticate
 
 
 st.set_page_config(
-    page_title="ChatGPT-Killer",
+    page_title="OpenChatLog",
     page_icon=":fox_face:"
 )
 mongo_url = "CONFIG.mongo_chatbot_uri"
 mdb = MongoDB(collection_name=f"{TEST_VERSION}_detection_result", url=mongo_url)
 mdb_user = MongoDB(collection_name=f"{TEST_VERSION}_user_label", url=mongo_url)
+
+type2placeholder = {
+    "Question for Answer":"What is ChatGPT?", 
+    "Answer for Style":"ChatGPT is an AI language model developed by OpenAI.",
+    "Role for Prompt":"Rich"
+}
 
 lang2word = {
     "submit": {
@@ -204,87 +210,45 @@ def visualize_pred_res(user_q, user_a, output):
 
 
 def main_page():
-    st.header(f"The detection target: {TEST_VERSION}")
-    # Initialization
-    language = st.selectbox(
-        'Choose the language of input texts / 选择语言',
-        ('English', '中文',)
-    )
-    if language == "中文":
-        language = "zh"
-    else:
-        language = "en"
-    if 'language' not in st.session_state:
-        # new user!
-        st.session_state['generated'] = {}
-    st.session_state['language'] = language
+    # creating a login widget
 
-    # Input
-    user_input = get_text()
+    st.write(f'Welcome to OpenChatLog! There are 3 query types for users to cunstomize:')
+    st.markdown("> 1. Given a question, provide users with answer candidates from ChatGPT histroy database with colorful styles.\n"
+                +
+                "> 2. Given a piece of text (answer from ChatGPT), provide users with the most matching ChatGPT style and text in database.\n > "+
+                "3. Given a kind of role (e.g. storyteller), provide users with recommended combinations of decoding parameters and prompting"+
+                " templates that may instruct ChatGPT to fit this role.")
+    st.title("ChatGPT Style Search Engine")
 
-    if st.button(f"{lang2word['submit'][language]}", key="input"):
-        output = query({
-            "q": user_input["q"],
-            "a": user_input["a"],
-            "language": st.session_state['language'],
-        })
-        # visualize result
-        visualize_pred_res(user_input["q"], user_input["a"], output)
-        # add into db
-        _id = mdb.get_size()
-        record = {
-            "id": _id,  # 自增
-            "time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-            "user_name": f"{st.session_state['name']}",  # 用户名
-            "q": f"{user_input['q']}",  # 用户的输入q
-            "a": f"{user_input['a']}",  # 用户的输入a
-            "predict": f"{output}",  # 系统的回复
-            "language": f"{language}",  # language
-        }
-        # log
-        mdb.add_one(record)
-        st.session_state['generated'] = record
-
-    if st.session_state['generated']:
-        # finished prediction, ask for labeling
-        # a = deepcopy(st.session_state['generated'])
-        # a.pop('_id')
-        ask_for_labeling(st.session_state['generated'])
+    # Connect to the Google Sheet
+    data_path = "/data/tsq/CK/pic/avg_HC3_all_pearson_corr.csv"
+    df = pd.read_csv(data_path, dtype=str).fillna("")
+    # print(df.columns)
+    # Use a text_input to get the keywords to filter the dataframe
+    c1, c2 = st.columns([2,8])
+    # Add options
+    talk_options = ["Question for Answer", "Answer for Style", "Role for Prompt"]
+    type_sel = c1.selectbox("Query Type", talk_options)
+    st.session_state['placeholder'] = type2placeholder[type_sel]
+    text_search = c2.text_input("Search Query", value="", placeholder=st.session_state.placeholder)
+    # Show the cards
+    N_cards_per_row = 1
+    if text_search:
+        # Show the results, if you have a text_search
+        m1 = df["Unnamed: 0"].str.contains(text_search)
+        df_search = df[m1]
+        for n_row, row in df_search.reset_index().iterrows():
+            i = n_row%N_cards_per_row
+            if i==0:
+                st.write("---")
+                cols = st.columns(N_cards_per_row, gap="large")
+            # draw the card
+            with cols[n_row%N_cards_per_row]:
+                st.caption(f"{row['Unnamed: 0'].strip()} - {row[row['Unnamed: 0']].strip()} ")
+                st.markdown(f"**{row['WRich05_S'].strip()}**")
+                st.markdown(f"*{row['ppl'].strip()}*")
+                st.markdown(f"**{row['rouge-l-f']}**")
 
 
-
-# creating a login widget
-
-st.write(f'Welcome to OpenChatLog!')
-st.title("ChatGPT Style Search Engine")
-
-# Connect to the Google Sheet
-data_path = "/data/tsq/CK/pic/avg_HC3_all_pearson_corr.csv"
-df = pd.read_csv(data_path, dtype=str).fillna("")
-# print(df.columns)
-# st.write(df)
-# Use a text_input to get the keywords to filter the dataframe
-text_search = st.text_input("Freature name", value="")
-
-
-
-# Show the results, if you have a text_search
-m1 = df["Unnamed: 0"].str.contains(text_search)
-df_search = df[m1]
-
-
-# Another way to show the filtered results
-# Show the cards
-N_cards_per_row = 1
-if text_search:
-    for n_row, row in df_search.reset_index().iterrows():
-        i = n_row%N_cards_per_row
-        if i==0:
-            st.write("---")
-            cols = st.columns(N_cards_per_row, gap="large")
-        # draw the card
-        with cols[n_row%N_cards_per_row]:
-            st.caption(f"{row['Unnamed: 0'].strip()} - {row[row['Unnamed: 0']].strip()} ")
-            st.markdown(f"**{row['WRich05_S'].strip()}**")
-            st.markdown(f"*{row['ppl'].strip()}*")
-            st.markdown(f"**{row['rouge-l-f']}**")
+if __name__ == '__main__':
+    main_page()
