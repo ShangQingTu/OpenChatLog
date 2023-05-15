@@ -12,6 +12,7 @@ dataset2date = {
     "GPT-4-LLM": "2023-04-06",
     "ArguGPT": "2023-04-16",
     "medAlpaca": "2023-04-07",
+    "GPTeacher": "2023-05-04",
 }
 
 
@@ -91,11 +92,17 @@ class DataSaver:
                         # log
                         data_num += 1
                         fout.write(json.dumps(json_obj, ensure_ascii=False) + "\n")
-                elif self.args.source_dataset == "medAlpaca":
+                elif self.args.source_dataset == "medAlpaca" or self.args.source_dataset == "GPTeacher":
                     question = json_obj["instruction"] + ' ' + json_obj["input"]
-                    chatgpt_answer = json_obj["output"]
+                    # different source dataset
+                    if self.args.source_dataset == "medAlpaca":
+                        _id = "medA" + str(iter)
+                        chatgpt_answer = json_obj["output"]
+                    elif self.args.source_dataset == "GPTeacher":
+                        _id = "gpt4T" + str(iter)
+                        chatgpt_answer = json_obj["response"]
                     json_obj = {
-                        "id": "medA" + str(iter),
+                        "id": _id,
                         "source_type": self.args.source_type,
                         "source_dataset": self.args.source_dataset,
                         "source_task": source_task,

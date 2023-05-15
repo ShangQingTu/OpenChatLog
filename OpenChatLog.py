@@ -6,8 +6,7 @@ import plotly.graph_objs as go
 import requests
 import pandas as pd
 import time
-import yaml
-from yaml.loader import SafeLoader
+from data.backend import search
 from streamlit_authenticator.authenticate import Authenticate
 
 
