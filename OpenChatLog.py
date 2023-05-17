@@ -19,9 +19,15 @@ mdb = MongoDB(collection_name=f"{TEST_VERSION}_detection_result", url=mongo_url)
 mdb_user = MongoDB(collection_name=f"{TEST_VERSION}_user_label", url=mongo_url)
 
 type2placeholder = {
-    "Question for Answer":"What is ChatGPT?", 
-    "Answer for Style":"ChatGPT is an AI language model developed by OpenAI.",
-    "Role for Prompt":"Rich"
+    "Question for Answer":"How to create a Flask web application", 
+    "Answer for Style":"Visit Beijing",
+    "Role for Prompt":"Assistant"
+}
+
+query2type = {
+    "Question for Answer":"q", 
+    "Answer for Style":"a",
+    "Role for Prompt":"task"
 }
 
 lang2word = {
@@ -211,7 +217,7 @@ def visualize_pred_res(user_q, user_a, output):
 def main_page():
     # creating a login widget
 
-    st.write(f'Welcome to OpenChatLog! There are 3 query types for users to cunstomize:')
+    st.markdown(f'Welcome to [OpenChatLog](https://github.com/THU-KEG/ChatLog)! There are 3 query types for users to customize:')
     st.markdown("> 1. Given a question, provide users with answer candidates from ChatGPT histroy database with colorful styles.\n"
                 +
                 "> 2. Given a piece of text (answer from ChatGPT), provide users with the most matching ChatGPT style and text in database.\n > "+
@@ -220,13 +226,14 @@ def main_page():
     st.title("ChatGPT Style Search Engine")
 
     # Connect to the Google Sheet
-    data_path = "/data/tsq/CK/pic/avg_HC3_all_pearson_corr.csv"
-    df = pd.read_csv(data_path, dtype=str).fillna("")
+    # data_path = "/data/tsq/CK/pic/avg_HC3_all_pearson_corr.csv"
+    # df = pd.read_csv(data_path, dtype=str).fillna("")
     # print(df.columns)
     # Use a text_input to get the keywords to filter the dataframe
     c1, c2 = st.columns([2,8])
     # Add options
-    talk_options = ["Question for Answer", "Answer for Style", "Role for Prompt"]
+    # talk_options = ["Question for Answer", "Answer for Style", "Role for Prompt"]
+    talk_options = list(query2type.keys())
     type_sel = c1.selectbox("Query Type", talk_options)
     st.session_state['placeholder'] = type2placeholder[type_sel]
     text_search = c2.text_input("Search Query", value="", placeholder=st.session_state.placeholder)
@@ -234,19 +241,24 @@ def main_page():
     N_cards_per_row = 1
     if text_search:
         # Show the results, if you have a text_search
-        m1 = df["Unnamed: 0"].str.contains(text_search)
-        df_search = df[m1]
-        for n_row, row in df_search.reset_index().iterrows():
+        # m1 = df["Unnamed: 0"].str.contains(text_search)
+        # df_search = df[m1]
+        hits = search(text_search, query2type[type_sel])
+        # for hit in hits:
+        #     print(hit)
+        # df_search = pd.DataFrame(hits)
+        for n_row, row in enumerate(hits):
             i = n_row%N_cards_per_row
             if i==0:
                 st.write("---")
                 cols = st.columns(N_cards_per_row, gap="large")
             # draw the card
             with cols[n_row%N_cards_per_row]:
-                st.caption(f"{row['Unnamed: 0'].strip()} - {row[row['Unnamed: 0']].strip()} ")
-                st.markdown(f"**{row['WRich05_S'].strip()}**")
-                st.markdown(f"*{row['ppl'].strip()}*")
-                st.markdown(f"**{row['rouge-l-f']}**")
+                st.caption(f"Data source: {row['type'].strip()} - {row['dataset'].strip()} - {row['task'].strip()} ")
+                st.markdown(f"> `User:`\n"+ f"> *{row['q'].strip()}*")
+                st.markdown(f"`ChatGPT:`")
+                st.markdown(f"{row['a'].strip()}")
+                st.caption(f"**{row['chat_date']}**")
 
 
 if __name__ == '__main__':
