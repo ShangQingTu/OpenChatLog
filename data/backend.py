@@ -43,7 +43,7 @@ def init(args):
     # data
     with open(args.save_jsonl_path, 'r') as fin:
         lines = fin.readlines()
-        for line in tqdm(lines, total=len(lines)):
+        for i, line in tqdm(enumerate(lines), total=len(lines)):
             json_obj = json.loads(line.strip())
             # json_obj = {
             #         "id": "chatgpt-12",
@@ -57,7 +57,12 @@ def init(args):
             # }    
 
             # create and save and article
-            new_id = json_obj["id"] + "_" + json_obj["source_dataset"]
+            try:
+                _id = json_obj["id"]
+            except KeyError:
+                _id = str(i)
+            # print(json_obj)
+            new_id = _id + "_" + json_obj["source_dataset"]
             if json_obj["chat_date"].startswith("2023"):
                 date_time = json_obj["chat_date"]
             else:
@@ -67,7 +72,7 @@ def init(args):
                               dataset=json_obj["source_dataset"], 
                               task=json_obj["source_task"], 
                               q=json_obj["q"], 
-                              a=json_obj["a"], 
+                              a=str(json_obj["a"]), 
                               language=json_obj["language"], 
                               chat_date=date_time)
             article.save()

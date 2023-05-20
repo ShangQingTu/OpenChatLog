@@ -217,12 +217,23 @@ def visualize_pred_res(user_q, user_a, output):
 def main_page():
     # creating a login widget
 
-    st.markdown(f'Welcome to [OpenChatLog](https://github.com/THU-KEG/ChatLog)! There are 3 query types for users to customize:')
-    st.markdown("> 1. Given a question, provide users with answer candidates from ChatGPT histroy database with colorful styles.\n"
-                +
-                "> 2. Given a piece of text (answer from ChatGPT), provide users with the most matching ChatGPT style and text in database.\n > "+
-                "3. Given a kind of role (e.g. storyteller), provide users with recommended combinations of decoding parameters and prompting"+
-                " templates that may instruct ChatGPT to fit this role.")
+    st.markdown(f'Welcome to [OpenChatLog](https://github.com/THU-KEG/ChatLog)!')
+    # st.markdown("> 1. Given a question, provide users with answer candidates from ChatGPT histroy database with colorful styles.\n"
+    #             +
+    #             "> 2. Given a piece of text (answer from ChatGPT), provide users with the most matching ChatGPT style and text in database.\n > "+
+    #             "3. Given a kind of role (e.g. storyteller), provide users with recommended combinations of decoding parameters and prompting"+
+    #             " templates that may instruct ChatGPT to fit this role.")
+    st.markdown('''
+                <details> 
+                <summary>Click to see tips.</summary>
+                <p>There are 3 query types for users to customize: </p>
+                <ol>
+                <li>Given a question, provide users with answer candidates from ChatGPT histroy database with colorful styles.\n</li>
+                <li>Given a piece of text (answer from ChatGPT), provide users with the most matching ChatGPT style and text in database.</li>
+                <li>Given a kind of role (e.g. storyteller), provide users with recommended combinations of decoding parameters and prompting</li>
+                </ol>
+                </details>
+                ''', unsafe_allow_html=True)
     st.title("ChatGPT Style Search Engine")
 
     # Connect to the Google Sheet
@@ -255,8 +266,13 @@ def main_page():
             # draw the card
             with cols[n_row%N_cards_per_row]:
                 st.caption(f"Data source: {row['type'].strip()} - {row['dataset'].strip()} - {row['task'].strip()} ")
-                st.markdown(f"> `User:`\n"+ f"> *{row['q'].strip()}*")
-                st.markdown(f"`ChatGPT:`")
+                st.markdown('''
+                            <span style="background-color:rgb(100,200,200,0.5)">User:</span>
+                            ''', unsafe_allow_html=True)
+                st.markdown(f"> *{row['q'].strip()}*")
+                st.markdown('''
+                            <span style="background-color:rgb(100,200,200,0.5)">ChatGPT:</span>
+                            ''', unsafe_allow_html=True)
                 st.markdown(f"{row['a'].strip()}")
                 st.caption(f"**{row['chat_date']}**")
 

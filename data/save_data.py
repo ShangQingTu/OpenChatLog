@@ -182,11 +182,52 @@ class DataSaver:
                 fout.write(json.dumps(json_obj, ensure_ascii=False) + "\n")
         return data_num
 
+    def save_hc3(self):
+        # list files
+        # self.input_dir = os.path.join(self.input_dir')
+        file = 'hc3_qa.jsonl'
+        data_num = 0
+        file_name = file.split(".")[0]
+        json_objs = []
+        # read
+        with open(os.path.join(self.input_dir, file), 'r') as fin:
+            lines = fin.readlines()
+            for line in lines:
+                json_objs.append(json.loads(line.strip()))
+
+        fout = open(self.save_jsonl_path, 'a')
+        for iter, json_obj in enumerate(json_objs):
+            question =  json_obj["question"]
+            chatgpt_answers = json_obj["chatgpt_answers"]
+            source_task = json_obj["source"]
+            for i, ans in enumerate(chatgpt_answers):
+                json_obj = {
+                    "id": "hc3" + str(iter)  + "_"+ str(i),
+                    "source_type": self.args.source_type,
+                    "source_dataset": self.args.source_dataset,
+                    "source_task": source_task,
+                    "q": question,
+                    "a": ans,
+                    "language": self.args.language,
+                    "chat_date": dataset2date[self.args.source_dataset],
+                    "time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                }
+                # log
+                data_num += 1
+                fout.write(json.dumps(json_obj, ensure_ascii=False) + "\n")
+        return data_num
+
     def save(self):
+        # remove
+        if os.path.exists(self.save_jsonl_path):
+            os.remove(self.save_jsonl_path)
+        # save
         if self.args.source_dataset == 'ArguGPT':
             data_num = self.save_argugpt()
         elif self.args.source_dataset == 'GPT-4-LLM':
             data_num = self.save_gpt4llm()
+        elif self.args.source_dataset == 'HC3':
+            data_num = self.save_hc3()
         else:
             data_num = self.save_jsons()
         print(f"Finish saving {data_num} data into {self.save_jsonl_path}")
