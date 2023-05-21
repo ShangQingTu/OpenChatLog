@@ -27,7 +27,7 @@ type2placeholder = {
 query2type = {
     "Question for Answer":"q", 
     "Answer for Style":"a",
-    "Role for Prompt":"task"
+    # "Role for Prompt":"task"
 }
 
 lang2word = {
@@ -226,11 +226,10 @@ def main_page():
     st.markdown('''
                 <details> 
                 <summary>Click to see tips.</summary>
-                <p>There are 3 query types for users to customize: </p>
+                <p>There are 2 query types for users to customize: </p>
                 <ol>
                 <li>Given a question, provide users with answer candidates from ChatGPT histroy database with colorful styles.\n</li>
-                <li>Given a piece of text (answer from ChatGPT), provide users with the most matching ChatGPT style and text in database.</li>
-                <li>Given a kind of role (e.g. storyteller), provide users with recommended combinations of decoding parameters and prompting</li>
+                <li>Given a piece of text (expected answer from ChatGPT), provide users with the most matching ChatGPT responses in database.</li>
                 </ol>
                 </details>
                 ''', unsafe_allow_html=True)
@@ -254,11 +253,38 @@ def main_page():
         # Show the results, if you have a text_search
         # m1 = df["Unnamed: 0"].str.contains(text_search)
         # df_search = df[m1]
+        start_time = time.time()
         hits = search(text_search, query2type[type_sel])
+        end_time = time.time()
+        time_cost = end_time - start_time
         # for hit in hits:
         #     print(hit)
         # df_search = pd.DataFrame(hits)
-        for n_row, row in enumerate(hits):
+        st.write("---")
+        # st.markdown(f"Total **{hits.count()}** results found in **{time_cost:.2f}** seconds.")
+        sel_cols = st.columns(2, gap="large")
+        with sel_cols[0]:
+            soure_dataset_option = st.selectbox(
+            'Filter by source dataset',
+            ['all', 'UltraChat', 'GPT-4-LLM','HC3','GPTeacher', 'medAlpaca', 'ArguGPT'])
+        if soure_dataset_option != "all":
+            # print(soure_dataset_option)
+            filter_hits = hits.filter('match', dataset=soure_dataset_option)
+        else:
+            filter_hits = hits.exclude('match', dataset="medAlpaca")
+        filter_hits_count = filter_hits.count()
+        # page selection
+        with sel_cols[1]:
+            # page_upper_bound = min(filter_hits_count//10+2, 10)
+            page_upper_bound = filter_hits_count//10+1
+            page_number = st.number_input('Jump to page number', min_value=1, max_value=page_upper_bound, value=1, step=1, format='%d')
+            # page_number = st.selectbox(
+            # 'Select page number',
+            # [i for i in range(1, page_upper_bound)])
+        filter_hits_display = filter_hits[(page_number-1)*10:page_number*10]
+        # calculate filtered lenth
+        st.markdown(f"Total **{filter_hits_count}** results found in **{time_cost:.2f}** seconds. Displaying page {page_number}.")
+        for n_row, row in enumerate(filter_hits_display):
             i = n_row%N_cards_per_row
             if i==0:
                 st.write("---")

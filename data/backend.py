@@ -1,7 +1,7 @@
 from datetime import datetime
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Document, Date, Integer, Keyword, Text, connections
-from elasticsearch_dsl import MultiSearch, Search
+from elasticsearch_dsl import MultiSearch, Search, Q
 import argparse
 import os
 import json
@@ -83,7 +83,15 @@ def init(args):
 def search(query, field):
     client = Elasticsearch(hosts=['localhost:9344'])
     if field == "q":
-        s = Search().using(client).query("match", q=query)
+        q = Q('bool',
+                must=[Q('match', q=query)],
+                # filter=[~Q('match', dataset='medAlpaca')],
+                # should=[Q(...), Q(...)],
+                # minimum_should_match=1
+            )
+        # s = Search().using(client).query("match", q=query)
+        s = Search().using(client).query(q)
+        # s = s.filter('terms', tags=['search', 'python'])
     elif field == "a":
         s = Search().using(client).query("match", a=query)
     elif field == "type":
@@ -99,6 +107,7 @@ def search(query, field):
     else:   
         s = Search().using(client).query("match", q=query)
     response = s.execute()
+    # print('Total %d hits found.' % s.count())
     return s
 
     # for hit in s:
