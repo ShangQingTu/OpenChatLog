@@ -11,7 +11,7 @@
   <a href="#collect-data">Data</a> •
   <a href="https://arxiv.org/abs/2304.14106">Paper</a> •
   <a href="#citation">Citation</a> •
-  <a href="https://github.com/ShangQingTu/OpenChatLog/OpenChatLog_slide.pptx">Slides</a> 
+  <a href="https://github.com/ShangQingTu/OpenChatLog/blob/main/OpenChatLog_slide.pptx">Slides</a> 
 </p>
 
 # Overview
@@ -22,7 +22,7 @@ There are 2 query types for users to customize:
 - Given a question, search answer candidates from our LLM  histroy responses database by question matching.
 - Given a piece of text (expected answer from LLM), search the most matching LLM responses in database. 
 
-![image](./example_v1.mov)
+![image](./example_v1.gif)
 
 
 
