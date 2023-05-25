@@ -216,7 +216,37 @@ class DataSaver:
                 data_num += 1
                 fout.write(json.dumps(json_obj, ensure_ascii=False) + "\n")
         return data_num
+    
+    def save_ChatLog(self):
+        # list files
+        self.input_dir = os.path.join(self.args.data_dir, 'api', 'after0301')
+        data_num = 0
+        files = os.listdir(self.input_dir)
+        files.remove("en")
+        json_objs = []
+        for file in files:
+            file_name = file.split(".")[0]
+            print(file_name)
+            dataset_suffix = file_name.split("_")[1]
+            # read
+            with open(os.path.join(self.input_dir, file), 'r') as fin:
+                lines = fin.readlines()
+                for line in lines:
+                    json_obj = json.loads(line.strip())
+                    # source_dataset = json_obj["source_dataset"]
+                    json_obj["source_dataset"] = f"ChatLog_{dataset_suffix}"
+                    json_objs.append(json_obj)
 
+        fout = open(self.save_jsonl_path, 'a')
+        for iter, json_obj in enumerate(json_objs):
+            chat_date = json_obj["chat_date"]
+            json_obj["id"] = f"ChatLog_{dataset_suffix}_{chat_date}_{iter}"
+            json_obj["time"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            # log
+            data_num += 1
+            fout.write(json.dumps(json_obj, ensure_ascii=False) + "\n")
+        return data_num
+    
     def save(self):
         # remove
         if os.path.exists(self.save_jsonl_path):
@@ -228,6 +258,8 @@ class DataSaver:
             data_num = self.save_gpt4llm()
         elif self.args.source_dataset == 'HC3':
             data_num = self.save_hc3()
+        elif self.args.source_dataset == 'ChatLog':
+            data_num = self.save_ChatLog()
         else:
             data_num = self.save_jsons()
         print(f"Finish saving {data_num} data into {self.save_jsonl_path}")

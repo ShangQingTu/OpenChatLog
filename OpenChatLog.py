@@ -217,8 +217,8 @@ def visualize_pred_res(user_q, user_a, output):
 def main_page():
     # creating a login widget
 
-    st.markdown(f'Welcome to [OpenChatLog](https://github.com/THU-KEG/ChatLog)!')
-    # st.markdown("> 1. Given a question, provide users with answer candidates from ChatGPT histroy database with colorful styles.\n"
+    st.markdown(f'Welcome to [OpenChatLog](https://github.com/ShangQingTu/OpenChatLog)!')
+    # st.markdown("> 1. Given a question, provide users with answer candidates from ChatGPT history database with colorful styles.\n"
     #             +
     #             "> 2. Given a piece of text (answer from ChatGPT), provide users with the most matching ChatGPT style and text in database.\n > "+
     #             "3. Given a kind of role (e.g. storyteller), provide users with recommended combinations of decoding parameters and prompting"+
@@ -228,7 +228,7 @@ def main_page():
                 <summary>Click to see tips.</summary>
                 <p>There are 2 query types for users to customize: </p>
                 <ol>
-                <li>Given a question, provide users with answer candidates from ChatGPT histroy database with colorful styles.\n</li>
+                <li>Given a question, provide users with answer candidates from ChatGPT history database with colorful styles.\n</li>
                 <li>Given a piece of text (expected answer from ChatGPT), provide users with the most matching ChatGPT responses in database.</li>
                 </ol>
                 </details>
@@ -266,7 +266,7 @@ def main_page():
         with sel_cols[0]:
             soure_dataset_option = st.selectbox(
             'Filter by source dataset',
-            ['all', 'UltraChat', 'GPT-4-LLM','HC3','GPTeacher', 'medAlpaca', 'ArguGPT'])
+            ['all', 'UltraChat', 'GPT-4-LLM','HC3', 'ChatLog_base','GPTeacher', 'medAlpaca', 'ArguGPT'])
         if soure_dataset_option != "all":
             # print(soure_dataset_option)
             filter_hits = hits.filter('match', dataset=soure_dataset_option)
