@@ -14,9 +14,9 @@ def get_answer(prompt):
     return res.json()["choices"][0]["message"]["content"]
 
 def collect_hc3_data(start, end):
-    with open("/data/tsq/OpenChatLog/question_source/HC3_en.jsonl", 'r', encoding='utf8') as f:
+    with open("/data/tsq/OpenChatLog/question_source/HC3_zh.jsonl", 'r', encoding='utf8') as f:
         hc3 = f.readlines()
-    with open("/data/tsq/OpenChatLog/monthly_data/hc3_en_may.jsonl", "a+", encoding="utf8") as outf:
+    with open("/data/tsq/OpenChatLog/monthly_data/hc3_zh_may.jsonl", "a+", encoding="utf8") as outf:
         cnt = 0
         for line in hc3:
             data = json.loads(line)
@@ -30,7 +30,7 @@ def collect_hc3_data(start, end):
                     "source_task": data["source"],
                     "q": data["question"],
                     "a": get_answer(data["question"]),
-                    "language": "en",
+                    "language": "zh",
                     "chat_date": str(datetime.date.today())
                 }
                 outf.write(str(json.dumps(res, ensure_ascii=False)) + "\n")
@@ -39,5 +39,5 @@ def collect_hc3_data(start, end):
 
 
 if __name__ == "__main__":
-    collect_hc3_data(15142, 24322)
+    collect_hc3_data(1, 20000)
     print("Done!")
