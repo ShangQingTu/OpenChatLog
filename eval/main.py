@@ -2,8 +2,8 @@ import argparse
 import os
 import json
 
-from inference import run_main, run_search
-from evaluation import (
+from eval.inference import run_main, run_search
+from eval.evaluation import (
     eval_recall,
     eval_question_answering,
     eval_fact_checking,
@@ -27,23 +27,24 @@ def readfiles(infile):
     return lines
 
 
-def step1(dataset, datatype, split, max_tokens, engine, prompt, pid, n, temp):
+def step1(dataset, datatype, split, max_tokens, engine, prompt, pid, n, temp, search_field):
 
     inputfile = f'/data/tsq/OpenQA/data/{dataset}-{split}.jsonl'
     inlines = readfiles(inputfile)
 
     if (temp is None) or (temp == 0):
-        outputfolder = f'/data/tsq/OpenQA/backgrounds-top{n}-{engine}/{dataset}'
+        outputfolder = f'/data/tsq/OpenQA/backgrounds-top{n}-{engine}-{search_field}/{dataset}'
     else: # tempature > 0
-        outputfolder = f'/data/tsq/OpenQA/backgrounds-sample(n={n},temp={temp})-{engine}/{dataset}'
+        outputfolder = f'/data/tsq/OpenQA/backgrounds-sample(n={n},temp={temp})-{engine}-{search_field}/{dataset}'
     os.makedirs(outputfolder, exist_ok=True)
     outputfile = f'{outputfolder}/{dataset}-{split}-p{pid}.jsonl'
     
-    run_search(inlines, outputfile, engine, prompt, max_tokens, n, temp)
+    run_search(inlines, outputfile, engine, prompt, max_tokens, n, temp, search_field)
 
     if datatype == 'question answering': ## Eval Recall@K score
         recallfile = f'{outputfolder}/{dataset}-recall@k.jsonl'
-        default_k = [1, 5, 10, 15, 20]
+        # default_k = [1, 5, 10, 15, 20]
+        default_k = [1, 5, 10, 15, 20, 100]
         with open(recallfile, 'a') as recallout:
             recall, length = eval_recall(outputfile, truncs=default_k)
             outmetrics = {
@@ -129,6 +130,9 @@ if __name__ == "__main__":
     parser.add_argument("--engine", default='OpenChatLog', type=str, required=False,
         help="text-davinci-002 (used in our experiments), code-davinci-002",
     )
+    parser.add_argument("--search_field", default='a', type=str, required=False,
+        help="search which field of the document: [a, q]",
+    )
     parser.add_argument("--num_sequence", default=1, type=int, required=False)
     parser.add_argument("--temperature", default=0, type=float, required=False)
 
@@ -166,7 +170,7 @@ if __name__ == "__main__":
 
             if args.task == 'step1':
                 outputs = step1(args.dataset, datatype, args.split, max_tokens, args.engine, 
-                    prompt, pid, args.num_sequence, args.temperature)
+                    prompt, pid, args.num_sequence, args.temperature, args.search_field)
 
             elif args.task == 'step2':
                 outputs = step2(args.dataset, datatype, args.split, 

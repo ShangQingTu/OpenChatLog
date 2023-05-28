@@ -151,7 +151,7 @@ def run_se_inference(question, engine, max_tokens, num_sequence=1, temp=0, query
     return final_hits
 
 
-def run_search(inlines, outfile, engine, prompt, max_tokens, n=1, temp=0):
+def run_search(inlines, outfile, engine, prompt, max_tokens, n=1, temp=0, query_type='q'):
     if os.path.exists(outfile):
         outs = open(outfile, 'a', encoding='utf8')
         num_lines = len(open(outfile, 'r').readlines())
@@ -164,10 +164,10 @@ def run_search(inlines, outfile, engine, prompt, max_tokens, n=1, temp=0):
     for inline in  tqdm(inlines, total = len(inlines)):
 
         outputs = run_se_inference(inline['question'], 
-            engine, max_tokens, n, temp)
+            engine, max_tokens, n, temp, query_type)
 
         outs.write(json.dumps({
             'question': inline['question'], 
-            'answer': inline['question'], 
+            'answer': inline['answer'], 
             'output': outputs}) 
             +'\n')

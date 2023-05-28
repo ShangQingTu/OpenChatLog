@@ -130,11 +130,11 @@ def eval_recall(infile, truncs):
     tokenizer = SimpleTokenizer()
     lines = open(infile, 'r').readlines()[1:]
 
-    has_answer_count = 0
-    answer_lengths = []
     recalls = []
     lenths = []
     for trunc in truncs:
+        has_answer_count = 0
+        answer_lengths = []
         for line in lines:
             line = json.loads(line)
             answer = line['answer']
