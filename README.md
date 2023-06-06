@@ -1,5 +1,5 @@
 
-
+![image](./logo.png)
 
 # OpenChatLog: A Search Engine for LLM Generated Texts 
 
@@ -145,7 +145,35 @@ nohup streamlit run OpenChatLog.py --server.port 9621 > server.log &
 ```
 
 
+# Evaluation
 
+Use 3 OpenQA dataset:
+
+| Dataset           | #Example of test set | Download Link                                                |
+| ----------------- | -------------------- | ------------------------------------------------------------ |
+| Natural Questions | 3610                 | https://drive.google.com/drive/folders/11BzHvfUMWGZSFsRnrWW91L3RbqmvmjoK |
+| TriviaQA          | 11313                | https://drive.google.com/drive/folders/1xhC5P50w-BaOEGHhKmsXLCyFcmqCb6Vn |
+| WebQuestions      | 2032                 | https://drive.google.com/drive/folders/1kokkW-eaTJkPpxaDAl_h2q7zrd0b7HuY |
+
+Search in OpenChatLog:
+
+```
+python -m eval.main --dataset nq --task step1 --split test --num_sequence 25
+```
+
+Search in answers of OpenChatLog:
+
+```
+python -m eval.main --dataset nq --task step1 --split test --num_sequence 25 --search_field a
+```
+
+compare with:
+
+https://arxiv.org/pdf/2101.00408.pdf
+
+Result are:
+
+![image](./exp_openqa.png)
 
 
 # Misc
